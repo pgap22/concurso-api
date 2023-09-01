@@ -48,6 +48,16 @@ export const crearJurado = async (req, res) => {
     const { nombre, usuario, password } = createJuradoSchema.parse(req.body);
     const rol = req.query.rol || "jurado";
 
+
+    //Si existe con el mismo usuario
+    const mismoUsuario = await prisma.usuario.findFirst({
+      where: {
+        usuario
+      }
+    })
+
+    if(mismoUsuario) return res.status(400).json({msg: "Mismo usuario !"})
+
     // Create jurado user
     const createdJurado = await prisma.usuario.create({
       data: {
@@ -88,6 +98,15 @@ export const actualizarJurado = async (req, res) => {
   const juradoId = req.params.id;
   try {
     const { nombre, usuario, password } = updateJuradoSchema.parse(req.body);
+    
+    //Si existe con el mismo usuario
+    const mismoUsuario = await prisma.usuario.findFirst({
+      where: {
+        usuario
+      }
+    })
+
+    if(mismoUsuario) return res.status(400).json({msg: "Mismo usuario !"})
 
     const updatedJurado = await prisma.usuario.update({
       where: { id: juradoId },
@@ -119,7 +138,7 @@ export const eliminarJurado = async (req, res) => {
   const juradoId = req.params.id;
   try {
     const deletedJurado = await prisma.usuario.delete({
-      where: { id: juradoId, rol },
+      where: { id: juradoId },
     });
 
     return res.json(deletedJurado);
