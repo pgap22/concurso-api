@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum estadoConcurso{
+  inscripcion
+  evaluacion
+  finalizado
+}
+
+enum roles {
+  jurado
+  admin
+  encargado
+}
+
+
+model usuario {
+  id       String @id @default(uuid())
+  nombre   String
+  usuario  String
+  password String
+  rol      roles
+
+
+  concursosCreados concurso[]
+  evaluaciones evaluacionConcursante[]
+  concursoJurado concursoJurado[]
+}
+
+model concursante {
+  id        String @id @default(uuid())
+  nombres   String
+  apellidos String
+  grado     String
+
+  concursos    concursanteConcurso[]
+  evaluaciones evaluacionConcursante[]
+}
+
+model concursoJurado {
+  id          String @id @default(uuid())
+  id_concurso String
+  id_jurado   String
+  
+  jurado usuario @relation(fields: [id_jurado], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  concurso concurso @relation(fields: [id_concurso], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model concurso {
+  id          String   @id @default(uuid())
+  nombre      String
+  descripcion String
+  fecha       DateTime
+  estado estadoConcurso @default(inscripcion)
+
+  id_usuario  String
+  usuarioCreador usuario @relation(fields: [id_usuario], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  criterios    criterio[]
+  concursantes concursanteConcurso[]
+  evaluaciones evaluacionConcursante[]
+
+  concursoJurados concursoJurado[]
+}
+
+model concursanteConcurso {
+  id             String @id @default(uuid())
+  id_concurso    String
+  id_concursante String
+
+  concurso    concurso    @relation(fields: [id_concurso], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  concursante concursante @relation(fields: [id_concursante], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model evaluacionConcursante {
+  id String @id @default(uuid())
+
+  puntajeTotal Int? @default(0)
+
+  id_jurado      String
+  id_concursante String
+  id_concurso    String
+
+  jurado      usuario     @relation(fields: [id_jurado], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  concursante concursante @relation(fields: [id_concursante], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  concurso    concurso    @relation(fields: [id_concurso], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  puntajesConcursante puntajeConcursante[]
+}
+
+model puntajeConcursante {
+  id String @id @default(uuid())
+
+  id_evaluacion String
+  id_criterio   String
+  valor         Int
+
+  ponderacionCriterio criterio              @relation(fields: [id_criterio], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  evaluacion          evaluacionConcursante @relation(fields: [id_evaluacion], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model criterio {
+  id          String @id @default(uuid())
+  nombre      String
+  descripcion String
+
+  id_concurso String
+  concurso    concurso @relation(fields: [id_concurso], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  ponderaciones       ponderacionCriterio[]
+  puntajeConcursantes puntajeConcursante[]
+}
+
+model ponderacionCriterio {
+  id          String @id @default(uuid())
+  nombre      String
+  descripcion String
+  valor       Int
+
+  id_criterio String
+
+  criterio criterio @relation(fields: [id_criterio], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
