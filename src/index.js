@@ -9,7 +9,6 @@ import routerPonderacion from "./routes/ponderacionController.js";
 import routerConcursantes from "./routes/concursantesRouter.js";
 
 import { prisma } from "./db/prisma.js";
-import { Prisma } from "@prisma/client";
 dotenv.config();
 
 // Create an instance of the Express application

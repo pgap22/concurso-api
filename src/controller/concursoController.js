@@ -171,7 +171,11 @@ export const obtenerConcursantesConcurso = async (req, res) => {
             apellidos: true,
             grado: true,
             institucion: true,
-            evaluaciones: true
+            evaluaciones: {
+              where: {
+                id_concurso: id
+              }
+            }
           }
         },
       },
@@ -500,14 +504,29 @@ export const importarCriterios = async (req, res) => {
     .flatMap((ponderacion) => ponderacion);
 
 
-    //Agregar las ponderaciones
-    if(ponderacion.filter(row => row.id_criterio).length){
-      await prisma.$queryRaw`INSERT INTO "ponderacionCriterio"(id,nombre,valor,descripcion,id_criterio) VALUES ${Prisma.join(
-        ponderacion.map(
-          (row) => Prisma.sql`(${uuidv4()},${row.nombre},${row.valor},${row.descripcion},${row.id_criterio})`
-        )
-      )}`;
+    //Fix mysql and post
+    if(process.env.SGBD=="mysql"){
+        if(ponderacion.filter(row => row.id_criterio).length){
+          await prisma.$queryRaw`INSERT INTO ponderacionCriterio(id,nombre,valor,descripcion,id_criterio) VALUES ${Prisma.join(
+            ponderacion.map(
+              (row) => Prisma.sql`(${uuidv4()},${row.nombre},${row.valor},${row.descripcion},${row.id_criterio})`
+            )
+          )}`;
+        }
+    }else{
+
+      if(ponderacion.filter(row => row.id_criterio).length){
+        await prisma.$queryRaw`INSERT INTO "ponderacionCriterio"(id,nombre,valor,descripcion,id_criterio) VALUES ${Prisma.join(
+          ponderacion.map(
+            (row) => Prisma.sql`(${uuidv4()},${row.nombre},${row.valor},${row.descripcion},${row.id_criterio})`
+          )
+        )}`;
+      }
+
     }
+
+    //Agregar las ponderaciones
+ 
   
     return res.json({msg: "Importado !"})
   } catch (error) {
