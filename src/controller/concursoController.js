@@ -1,4 +1,6 @@
 import z from "zod";
+import { v4 as uuidv4 } from 'uuid';
+
 import { prisma } from "../db/prisma.js";
 import { Prisma } from "@prisma/client";
 
@@ -24,7 +26,6 @@ export const crearConcurso = async (req, res) => {
   try {
     const data = concursoScheme.parse(req.body);
 
-    data.fecha = new Date().toISOString();
     data.id_usuario = req.usuario.id
 
     const concurso = await prisma.concurso.create({
@@ -92,6 +93,9 @@ export const obtenerConcursoPorId = async (req, res) => {
       where: { id },
       include: {
         criterios: {
+          orderBy:{
+            createdAt: 'asc'
+          },
           include: {
             ponderaciones: {
               orderBy: {
@@ -160,7 +164,16 @@ export const obtenerConcursantesConcurso = async (req, res) => {
         id_concurso: id,
       },
       select: {
-        concursante: true,
+        concursante: {
+          select: {
+            id: true,
+            nombres: true,
+            apellidos: true,
+            grado: true,
+            institucion: true,
+            evaluaciones: true
+          }
+        },
       },
     });
 
@@ -439,6 +452,7 @@ const criterioSchema = z.object({
   nombre: z.string(),
   descripcion: z.string(),
   ponderaciones: z.array(ponderacionSchema),
+  createdAt: z.string().transform(Date).optional()
 });
 
 const importJSONSchema = z.array(criterioSchema);
@@ -461,7 +475,7 @@ export const importarCriterios = async (req, res) => {
     await prisma.$queryRaw`INSERT INTO criterio(id,nombre,descripcion,id_concurso) VALUES ${Prisma.join(
       datos.map(
         (row) =>
-          Prisma.sql`(uuid(),${row.nombre}, ${row.descripcion}, ${id_concurso})`
+          Prisma.sql`(${uuidv4()},${row.nombre}, ${row.descripcion}, ${id_concurso})`
       )
     )}`;
 
@@ -487,12 +501,13 @@ export const importarCriterios = async (req, res) => {
 
 
     //Agregar las ponderaciones
-    await prisma.$queryRaw`INSERT INTO ponderacioncriterio(id,nombre,valor,descripcion,id_criterio) VALUES ${Prisma.join(
-      ponderacion.map(
-        (row) =>
-          Prisma.sql`(uuid(), ${row.nombre},${row.valor},${row.descripcion},${row.id_criterio})`
-      )
-    )}`;
+    if(ponderacion.filter(row => row.id_criterio).length){
+      await prisma.$queryRaw`INSERT INTO "ponderacionCriterio"(id,nombre,valor,descripcion,id_criterio) VALUES ${Prisma.join(
+        ponderacion.map(
+          (row) => Prisma.sql`(${uuidv4()},${row.nombre},${row.valor},${row.descripcion},${row.id_criterio})`
+        )
+      )}`;
+    }
   
     return res.json({msg: "Importado !"})
   } catch (error) {

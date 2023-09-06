@@ -113,3 +113,48 @@ export const eliminarCriterio = async (req, res) => {
       .json({ message: "Hubo un error al eliminar el criterio.", error });
   }
 };
+
+
+export const duplicarCriterio = async (req,res)=>{
+  try {
+    const {id} = req.params;
+    const criterioOriginal = await prisma.criterio.findFirst({where: {
+      id
+    },
+  include: {
+    ponderaciones: true
+  }
+  })
+
+    if(!criterioOriginal) return res.status(400).json({msg: "No existe criterio"})
+
+    let ponderaciones = [...criterioOriginal.ponderaciones].map(ponderacion => {
+      delete ponderacion.id
+      return ponderacion;
+    })
+
+    delete criterioOriginal.id
+    delete criterioOriginal.ponderaciones;
+
+    criterioOriginal.nombre += " (Duplicado)"
+    criterioOriginal.createdAt = new Date();
+
+    const duplicado = await prisma.criterio.create({
+      data: criterioOriginal
+    })
+
+    ponderaciones.map(ponderacion => {
+      ponderacion.id_criterio = duplicado.id
+      return ponderacion;
+    })
+
+    await prisma.ponderacionCriterio.createMany({
+      data: ponderaciones
+    })
+
+    return res.json(duplicado)
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json(error)
+  }
+}

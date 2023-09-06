@@ -5,6 +5,7 @@ const concursanteScheme = z.object({
   nombres: z.string(),
   apellidos: z.string(),
   grado: z.string(),
+  institucion: z.string()
 });
 
 const unirConcurso = z.object({
@@ -70,9 +71,9 @@ export const obtenerConcursantePorId = async (req, res) => {
 
 // Actualizar un concursante por ID
 export const actualizarConcursante = async (req, res) => {
-  const { id } = req.params;
-  const data = concursanteScheme.parse(req.body);
   try {
+    const { id } = req.params;
+    const data = concursanteScheme.parse(req.body);
     const concursante = await prisma.concursante.update({
       where: { id },
       data,

@@ -102,7 +102,10 @@ export const actualizarJurado = async (req, res) => {
     //Si existe con el mismo usuario
     const mismoUsuario = await prisma.usuario.findFirst({
       where: {
-        usuario
+        usuario,
+        NOT: {
+          id: juradoId
+        }
       }
     })
 

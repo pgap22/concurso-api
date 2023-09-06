@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgres"
   url      = env("DATABASE_URL")
 }
 
@@ -41,6 +41,7 @@ model concursante {
   nombres   String
   apellidos String
   grado     String
+  institucion String
 
   concursos    concursanteConcurso[]
   evaluaciones evaluacionConcursante[]
@@ -112,6 +113,7 @@ model criterio {
   id          String @id @default(uuid())
   nombre      String
   descripcion String
+  createdAt   DateTime @default(now())
 
   id_concurso String
   concurso    concurso @relation(fields: [id_concurso], references: [id], onDelete: Cascade, onUpdate: Cascade)
