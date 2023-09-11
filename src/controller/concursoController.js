@@ -1,4 +1,4 @@
-import z from "zod";
+import z, { date } from "zod";
 import { v4 as uuidv4 } from 'uuid';
 
 import { prisma } from "../db/prisma.js";
@@ -159,6 +159,7 @@ export const eliminarConcurso = async (req, res) => {
 export const obtenerConcursantesConcurso = async (req, res) => {
   try {
     const { id } = req.params;
+    const idUsuario = req.usuario.id
     const concursantes = await prisma.concursanteConcurso.findMany({
       where: {
         id_concurso: id,
@@ -173,7 +174,8 @@ export const obtenerConcursantesConcurso = async (req, res) => {
             institucion: true,
             evaluaciones: {
               where: {
-                id_concurso: id
+                id_concurso: id,
+                id_jurado: idUsuario
               }
             }
           }
@@ -534,3 +536,26 @@ export const importarCriterios = async (req, res) => {
     return res.status(500).json({msg: "Error en el servidor"})
   }
 };
+
+export const resetearEvaluaciones = async (req,res)=>{
+  try {
+    const {id} = req.params;
+    await prisma.evaluacionConcursante.deleteMany({
+      where: {
+        id_concurso: id
+      }
+    })
+    await prisma.concurso.update({
+      where: {
+        id: id
+      },
+      data:{
+        estado: 'inscripcion'
+      }
+    })
+    return res.json({msg: "Se han reseteado las evaluaciones"})
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({msg: "Ha ocurrido un error en el servidor"})
+  }
+}

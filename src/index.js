@@ -39,8 +39,8 @@ app.listen(port, () => {
       await prisma.usuario.create({
         data: {
           nombre: "Admin",
-          usuario: "admin_creaj",
-          password: "admin_creaj_2023",
+          usuario: "123",
+          password: "123",
           rol: "admin",
         },
       });

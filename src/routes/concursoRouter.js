@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { actualizarConcurso, agregarJuradoConcurso, cambiarEstado, crearConcurso, eliminarConcurso, eliminarJuradoConcurso, enviarResultados, importarCriterios, obtenerConcursantesConcurso, obtenerConcursantesDisponibles, obtenerConcursoPorId, obtenerConcursos, obtenerJuradosConcurso, obtenerJuradosConcursoDisponible, obtenerRanking, obtenerResultadosEvaluacion } from "../controller/concursoController.js";
+import { actualizarConcurso, agregarJuradoConcurso, cambiarEstado, crearConcurso, eliminarConcurso, eliminarJuradoConcurso, enviarResultados, importarCriterios, obtenerConcursantesConcurso, obtenerConcursantesDisponibles, obtenerConcursoPorId, obtenerConcursos, obtenerJuradosConcurso, obtenerJuradosConcursoDisponible, obtenerRanking, obtenerResultadosEvaluacion, resetearEvaluaciones } from "../controller/concursoController.js";
 import { auth } from "../middleware/auth.js";
 import { admin } from "../middleware/admin.js";
 
@@ -8,6 +8,7 @@ const router = Router();
 router.post("/",auth, admin, crearConcurso);
 router.get("/",auth,  obtenerConcursos);
 
+router.delete("/resetear/:id", auth, resetearEvaluaciones)
 router.post("/importar-rubrica/:id", auth, importarCriterios)
 router.patch("/estado/:id", auth, cambiarEstado)
 router.get("/jurados/:id", auth, obtenerJuradosConcurso)

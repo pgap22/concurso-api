@@ -30,7 +30,7 @@ export const crearConcursante = async (req, res) => {
 export const obtenerConcursantes = async (req, res) => {
   try {
     const concursantes = await prisma.concursante.findMany();
-    return res.json(concursantes);
+    return res.json(concursantes.reverse());
   } catch (error) {
     console.log(error);
     return res.status(500).json({ msg: "Hubo un error en el servidor" });
